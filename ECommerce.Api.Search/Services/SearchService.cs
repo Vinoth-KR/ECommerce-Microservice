@@ -10,17 +10,21 @@ namespace ECommerce.Api.Search.Services
     {
         private readonly IOrdersService orderService;
         private readonly IProductsService productsService;
+        private readonly ICustomerService customersService;
 
-        public SearchService(IOrdersService orderService, IProductsService productsService)
+        public SearchService(IOrdersService orderService, IProductsService productsService,
+            ICustomerService customerService)
         {
             this.orderService = orderService;
             this.productsService = productsService;
+            this.customersService = customerService;
         }
 
         public async Task<(bool IsSuccess, dynamic SearchResults)> SearchAsync(int customerId)
         {
             var ordersResult = await orderService.GetOrdersAsync(customerId);
             var productsResult = await productsService.GetProductsAsync();
+            var customerResult = await customersService.GetCustomersAsync(customerId);
 
             if(ordersResult.IsSuccess)
             {
@@ -35,6 +39,9 @@ namespace ECommerce.Api.Search.Services
                 }
                 var result = new
                 {
+                    Customer = customerResult.IsSuccess ?
+                                customerResult.Customer :
+                                new Models.Customer { Name = "Customer information is not available" },
                     Orders = ordersResult.Orders
                 };
             return (true, result);
